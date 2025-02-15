@@ -83,10 +83,26 @@ def load_tiles(exemplar):
             t0.compatible_adjacency(t1,i)
     return tiles
 
+# task 4
+def make_tileset(sample, tile_size=3):
+    path = './samples/' + sample + '.png'
+    tiles = []
+    whole_image = Image.open(path)
+    width, height = whole_image.size
+    total_tiles = (width - tile_size) * (height - tile_size)
+    for i in range(0, width - tile_size):
+        for j in range(0, height - tile_size):
+            tile = whole_image.crop((i, j, i+tile_size, j+tile_size))
+            tiles.append(Tile(tile, total_tiles))
+    for t0 in tiles:
+        for i, t1 in enumerate(tiles):
+            t0.compatible_adjacency(t1,i)
+    return tiles
 # -------------------------------------
 # Here the tile set is loaded, so change line below to try other
 # tile set.
-tiles = load_tiles("Castle")
+# tiles = load_tiles("Castle")
+tiles = make_tileset("Village", tile_size=3)
 # -------------------------------------
 
 def pick_tile(we):
@@ -293,23 +309,35 @@ def precollapse_interactive(wave_grid):
     cid_key = fig.canvas.mpl_connect("key_press_event", on_key)
     plt.show(block=True)
 
+#part 3
+def propagate_adjacent(wave_grid, i, j):
+    '''Propagates the changes when a cell has been observed using a Python list as stack'''
+    for d, offset in enumerate(ENWS):
+        ni, nj = i + offset[0], j + offset[1]
+        if not ingrid(wave_grid, ni, nj):
+            continue
+
+        possible_tiles = get_posible_tiles(wave_grid, i, j, d)
+        # Bitwise multiplication keeps only tiles that are allowed
+        wave_grid[ni, nj] = wave_grid[ni, nj] * possible_tiles
+
 # At startup, open the persistent tile-selection window.
-# persistent_tile_fig = persistent_tile_window()
 
 # # Part 1: When observe and propagate have been fixed, 
 # # you can run the code below to produce a texture.
 # # Try with a number of tilesets. The resulting images
 # # are submitted. Try at least "Knots" and "FloorPlan"
 # # Initialize the wave grid
-# wave_grid = ones((25,25,len(tiles)), dtype=int)
-# # Activate precollapse mode
+
+# persistent_tile_fig = persistent_tile_window()
+wave_grid = ones((25,25,len(tiles)), dtype=int)
+# Activate precollapse mode
 # precollapse_interactive(wave_grid)
 # if persistent_tile_fig:
 #     plt.close(persistent_tile_fig)
-# # Run interactive WFC using a selectable propagation function.
-# # Change the second argument between 'propagate' and 'propagate_adjacent' as desired.
-# run_interactive(wave_grid, propagation_fn=propagate)  # or use propagate_adjacent
-# # run(wave_grid)
+# Run interactive WFC using a selectable propagation function.
+# run_interactive(wave_grid, propagation_fn=propagate)  
+run(wave_grid)
 
 # Part 2: Introduce constraints by precollapsing one or more 
 # cells to admit only one or more tiles in these cells. Discuss 
@@ -325,22 +353,15 @@ def precollapse_interactive(wave_grid):
 # cells are updated. Use this to produce a new texture based
 # on FloorPlan. Does this change the result? If so how? Show
 # images. 
-def propagate_adjacent(wave_grid, i, j):
-    '''Propagates the changes when a cell has been observed using a Python list as stack'''
-    for d, offset in enumerate(ENWS):
-        ni, nj = i + offset[0], j + offset[1]
-        if not ingrid(wave_grid, ni, nj):
-            continue
 
-        possible_tiles = get_posible_tiles(wave_grid, i, j, d)
-        # Bitwise multiplication keeps only tiles that are allowed
-        wave_grid[ni, nj] = wave_grid[ni, nj] * possible_tiles
 
 # Initialize the wave grid
-wave_grid = ones((25,25,len(tiles)), dtype=int)
+# wave_grid = ones((25,25,len(tiles)), dtype=int)
   
-run_interactive(wave_grid, propagation_fn=propagate_adjacent)  # or use propagate_adjacent
+# run_interactive(wave_grid, propagation_fn=propagate_adjacent)  # or use propagate_adjacent
  
 # Part 4 (NON-MANDATORY AND PROBABLY HARD)
 # Input a single image and make the tileset from patches in this
 # image. See if you can produce results similar to Marie's
+
+    
