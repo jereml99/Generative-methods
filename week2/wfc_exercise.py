@@ -18,6 +18,7 @@ from random import randint, shuffle, uniform
 from queue import Queue, LifoQueue
 from time import time
 import numpy as np
+from matplotlib.widgets import Button  # added at top if not already imported
 
 # The East North West South vector contains index pairs for
 # adjacent cells.
@@ -205,11 +206,109 @@ def run(wave_grid):
     I = wave_grid_to_image(wave_grid)
     I.save("img1.png")
 
+# Add a global persistent tile selection variable and a persistent tile window.
+persistent_tile_selection = set()
+
+def persistent_tile_window():
+    """
+    Opens a persistent side window that displays all tiles.
+    Tiles can be toggled on/off (red border when selected).
+    The current selection can be read from the global persistent_tile_selection.
+    """
+    global persistent_tile_selection
+    fig = plt.figure("Tile Selection")
+    persistent_tile_fig = fig  # store the figure handle for later shutdown
+    num_tiles = len(tiles)
+    ncols = 4
+    nrows = int(np.ceil(num_tiles / ncols))
+    axs = []
+    for idx in range(num_tiles):
+        ax = fig.add_subplot(nrows, ncols, idx+1)
+        ax.imshow(tiles[idx].img)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.text(0.5, 0.5, str(idx), transform=ax.transAxes,
+                fontsize=12, color="blue", ha="center", va="center")
+        # Initialize border
+        ax.patch.set_linewidth(2)
+        ax.patch.set_edgecolor("black")
+        axs.append(ax)
+
+    def on_tile_click(event):
+        nonlocal axs
+        for idx, a in enumerate(axs):
+            if event.inaxes == a:
+                if idx in persistent_tile_selection:
+                    persistent_tile_selection.remove(idx)
+                    a.patch.set_edgecolor("black")
+                else:
+                    persistent_tile_selection.add(idx)
+                    a.patch.set_edgecolor("red")
+                fig.canvas.draw_idle()
+                break
+
+    fig.canvas.mpl_connect("button_press_event", on_tile_click)
+    plt.show(block=False)
+    return persistent_tile_fig
+
+# Modify precollapse_interactive to use the persistent tile window selection.
+def precollapse_interactive(wave_grid):
+    """
+    Enables interactive precollapse: click a cell to precollapse.
+    Use the persistent tile-selection window (always visible) to set the active tile.
+    Press Enter (in the main window) to finish precollapse mode.
+    """
+    fig, ax = plt.subplots()
+    I = wave_grid_to_image(wave_grid)
+    im_obj = ax.imshow(I)
+    ax.set_title("Precollapse Mode: click a cell to precollapse; press 'enter' to continue.")
+    tile_w = tiles[0].img.width
+    tile_h = tiles[0].img.height
+
+    def on_click(event):
+        if event.inaxes != ax:
+            return
+        col = int(event.xdata // tile_w)
+        row = int(event.ydata // tile_h)
+        print(f"Selected cell: ({row}, {col})")
+        if len(persistent_tile_selection) == 0:
+            print("No tile is activated in the persistent selection window. Skipping cell update.")
+            return
+        # If several tiles are active, choose the first one.
+        chosen_tile = list(persistent_tile_selection)[0]
+        print(f"Applied persistent tile: {chosen_tile}")
+        new_vec = np.zeros(len(tiles), dtype=int)
+        new_vec[chosen_tile] = 1
+        wave_grid[row, col, :] = new_vec
+        new_I = wave_grid_to_image(wave_grid)
+        im_obj.set_data(new_I)
+        fig.canvas.draw()
+
+    def on_key(event):
+        if event.key == "enter":
+            print("Precollapse mode ended. Starting WFC.")
+            fig.canvas.mpl_disconnect(cid_click)
+            fig.canvas.mpl_disconnect(cid_key)
+            plt.close(fig)
+
+    cid_click = fig.canvas.mpl_connect("button_press_event", on_click)
+    cid_key = fig.canvas.mpl_connect("key_press_event", on_key)
+    plt.show(block=True)
+
+# At startup, open the persistent tile-selection window.
+persistent_tile_fig = persistent_tile_window()
+
 # Part 1: When observe and propagate have been fixed, 
 # you can run the code below to produce a texture.
 # Try with a number of tilesets. The resulting images
 # are submitted. Try at least "Knots" and "FloorPlan"
-wave_grid = ones((25,25,len(tiles)), dtype=int)
+# Initialize the wave grid
+wave_grid = ones((2,2,len(tiles)), dtype=int)
+# Activate precollapse mode
+precollapse_interactive(wave_grid)
+if persistent_tile_fig:
+    plt.close(persistent_tile_fig)
+# Then run the interactive WFC process
 run_interactive(wave_grid)
 # run(wave_grid)
 
