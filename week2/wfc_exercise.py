@@ -99,10 +99,16 @@ def make_tileset(sample, tile_size=3):
             t0.compatible_adjacency(t1,i)
     return tiles
 # -------------------------------------
-# Here the tile set is loaded, so change line below to try other
-# tile set.
-# tiles = load_tiles("Castle")
-tiles = make_tileset("Village", tile_size=3)
+# Configure tile loading.
+# TILE_MODE options: "make_tileset" or "load_tiles"
+TILE_MODE = "make_tileset"
+TILE_SAMPLE = "Village"
+TILE_TILE_SIZE = 3  # Used only for make_tileset
+
+if TILE_MODE == "make_tileset":
+    tiles = make_tileset(TILE_SAMPLE, tile_size=TILE_TILE_SIZE)
+else:
+    tiles = load_tiles(TILE_SAMPLE)
 # -------------------------------------
 
 def pick_tile(we):
@@ -331,13 +337,25 @@ def propagate_adjacent(wave_grid, i, j):
 
 # persistent_tile_fig = persistent_tile_window()
 wave_grid = ones((25,25,len(tiles)), dtype=int)
-# Activate precollapse mode
-# precollapse_interactive(wave_grid)
-# if persistent_tile_fig:
-#     plt.close(persistent_tile_fig)
-# Run interactive WFC using a selectable propagation function.
-# run_interactive(wave_grid, propagation_fn=propagate)  
-run(wave_grid)
+
+# Configuration variables for run mode.
+# MODE options: "non_interactive", "interactive", "interactive_adjacent"
+MODE = "non_interactive"
+# Enable precollapse for any mode by setting PRECOLLAPSE to True.
+PRECOLLAPSE = False
+
+if PRECOLLAPSE:
+    persistent_tile_fig = persistent_tile_window()
+    precollapse_interactive(wave_grid)
+    if persistent_tile_fig:
+        plt.close(persistent_tile_fig)
+
+if MODE == "interactive":
+    run_interactive(wave_grid, propagation_fn=propagate)
+elif MODE == "interactive_adjacent":
+    run_interactive(wave_grid, propagation_fn=propagate_adjacent)
+else:  # non_interactive
+    run(wave_grid, propagation_fn=propagate)
 
 # Part 2: Introduce constraints by precollapsing one or more 
 # cells to admit only one or more tiles in these cells. Discuss 
@@ -353,15 +371,9 @@ run(wave_grid)
 # cells are updated. Use this to produce a new texture based
 # on FloorPlan. Does this change the result? If so how? Show
 # images. 
-
-
-# Initialize the wave grid
-# wave_grid = ones((25,25,len(tiles)), dtype=int)
-  
-# run_interactive(wave_grid, propagation_fn=propagate_adjacent)  # or use propagate_adjacent
+## defiitly there is a lot more pocket which is not filled with the tiles.
  
 # Part 4 (NON-MANDATORY AND PROBABLY HARD)
 # Input a single image and make the tileset from patches in this
 # image. See if you can produce results similar to Marie's
 
-    
