@@ -101,8 +101,8 @@ def make_tileset(sample, tile_size=3):
 # -------------------------------------
 # Configure tile loading.
 # TILE_MODE options: "make_tileset" or "load_tiles"
-TILE_MODE = "make_tileset"
-TILE_SAMPLE = "Village"
+TILE_MODE = "load_tiles"
+TILE_SAMPLE = "Castle"
 TILE_TILE_SIZE = 3  # Used only for make_tileset
 
 if TILE_MODE == "make_tileset":
