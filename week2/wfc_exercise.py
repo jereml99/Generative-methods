@@ -167,18 +167,16 @@ def propagate(wave_grid, i, j):
     # Student code end ---------------
 
 
-def WFC(wave_grid):
+def WFC(wave_grid, propagation_fn=propagate):
     try:
         i, j = observe(wave_grid)
-        propagate(wave_grid, i, j)
+        propagation_fn(wave_grid, i, j)
         return True
-    except:
+    except Exception:
         return False
 
-
-def run_interactive(wave_grid):
-    '''This function runs WFC interactively, showing the result of each
-    step. '''
+def run_interactive(wave_grid, propagation_fn=propagate):
+    '''This function runs WFC interactively, showing the result of each step. '''
     I = wave_grid_to_image(wave_grid)
     I.save("img0.png")
     fig = plt.figure()
@@ -187,7 +185,7 @@ def run_interactive(wave_grid):
     plt.show(block=False)
     W = tiles[0].img.width
     H = tiles[0].img.height
-    while WFC(wave_grid):
+    while WFC(wave_grid, propagation_fn):
         fig.clear()
         I = wave_grid_to_image(wave_grid)
         plt.imshow(I)
@@ -196,12 +194,12 @@ def run_interactive(wave_grid):
     I.save("img1.png")
 
 
-def run(wave_grid):
+def run(wave_grid, propagation_fn=propagate):
     '''Run WFC non-interactively. Much faster since converting to 
     an image is the slowest part by far.'''
     I = wave_grid_to_image(wave_grid)
     I.save("img0.png")
-    while WFC(wave_grid):
+    while WFC(wave_grid, propagation_fn):
         pass
     I = wave_grid_to_image(wave_grid)
     I.save("img1.png")
@@ -296,21 +294,22 @@ def precollapse_interactive(wave_grid):
     plt.show(block=True)
 
 # At startup, open the persistent tile-selection window.
-persistent_tile_fig = persistent_tile_window()
+# persistent_tile_fig = persistent_tile_window()
 
-# Part 1: When observe and propagate have been fixed, 
-# you can run the code below to produce a texture.
-# Try with a number of tilesets. The resulting images
-# are submitted. Try at least "Knots" and "FloorPlan"
-# Initialize the wave grid
-wave_grid = ones((25,25,len(tiles)), dtype=int)
-# Activate precollapse mode
-precollapse_interactive(wave_grid)
-if persistent_tile_fig:
-    plt.close(persistent_tile_fig)
-# Then run the interactive WFC process
-run_interactive(wave_grid)
-# run(wave_grid)
+# # Part 1: When observe and propagate have been fixed, 
+# # you can run the code below to produce a texture.
+# # Try with a number of tilesets. The resulting images
+# # are submitted. Try at least "Knots" and "FloorPlan"
+# # Initialize the wave grid
+# wave_grid = ones((25,25,len(tiles)), dtype=int)
+# # Activate precollapse mode
+# precollapse_interactive(wave_grid)
+# if persistent_tile_fig:
+#     plt.close(persistent_tile_fig)
+# # Run interactive WFC using a selectable propagation function.
+# # Change the second argument between 'propagate' and 'propagate_adjacent' as desired.
+# run_interactive(wave_grid, propagation_fn=propagate)  # or use propagate_adjacent
+# # run(wave_grid)
 
 # Part 2: Introduce constraints by precollapsing one or more 
 # cells to admit only one or more tiles in these cells. Discuss 
@@ -336,7 +335,12 @@ def propagate_adjacent(wave_grid, i, j):
         possible_tiles = get_posible_tiles(wave_grid, i, j, d)
         # Bitwise multiplication keeps only tiles that are allowed
         wave_grid[ni, nj] = wave_grid[ni, nj] * possible_tiles
-            
+
+# Initialize the wave grid
+wave_grid = ones((25,25,len(tiles)), dtype=int)
+  
+run_interactive(wave_grid, propagation_fn=propagate_adjacent)  # or use propagate_adjacent
+ 
 # Part 4 (NON-MANDATORY AND PROBABLY HARD)
 # Input a single image and make the tileset from patches in this
 # image. See if you can produce results similar to Marie's
