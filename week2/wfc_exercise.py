@@ -274,12 +274,12 @@ def precollapse_interactive(wave_grid):
         if len(persistent_tile_selection) == 0:
             print("No tile is activated in the persistent selection window. Skipping cell update.")
             return
-        # If several tiles are active, choose the first one.
-        chosen_tile = list(persistent_tile_selection)[0]
+        chosen_tile = list(persistent_tile_selection)
         print(f"Applied persistent tile: {chosen_tile}")
         new_vec = np.zeros(len(tiles), dtype=int)
         new_vec[chosen_tile] = 1
-        wave_grid[row, col, :] = new_vec
+        wave_grid[col, row, :] = new_vec
+        propagate(wave_grid, col, row)
         new_I = wave_grid_to_image(wave_grid)
         im_obj.set_data(new_I)
         fig.canvas.draw()
@@ -303,7 +303,7 @@ persistent_tile_fig = persistent_tile_window()
 # Try with a number of tilesets. The resulting images
 # are submitted. Try at least "Knots" and "FloorPlan"
 # Initialize the wave grid
-wave_grid = ones((2,2,len(tiles)), dtype=int)
+wave_grid = ones((25,25,len(tiles)), dtype=int)
 # Activate precollapse mode
 precollapse_interactive(wave_grid)
 if persistent_tile_fig:
