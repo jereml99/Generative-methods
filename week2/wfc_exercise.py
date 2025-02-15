@@ -326,7 +326,17 @@ run_interactive(wave_grid)
 # cells are updated. Use this to produce a new texture based
 # on FloorPlan. Does this change the result? If so how? Show
 # images. 
+def propagate_adjacent(wave_grid, i, j):
+    '''Propagates the changes when a cell has been observed using a Python list as stack'''
+    for d, offset in enumerate(ENWS):
+        ni, nj = i + offset[0], j + offset[1]
+        if not ingrid(wave_grid, ni, nj):
+            continue
 
+        possible_tiles = get_posible_tiles(wave_grid, i, j, d)
+        # Bitwise multiplication keeps only tiles that are allowed
+        wave_grid[ni, nj] = wave_grid[ni, nj] * possible_tiles
+            
 # Part 4 (NON-MANDATORY AND PROBABLY HARD)
 # Input a single image and make the tileset from patches in this
 # image. See if you can produce results similar to Marie's
