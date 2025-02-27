@@ -1,0 +1,2 @@
+/home/jereml/Study/SIV/Generative methods/week3/gcg_stud/build/../bin/implicits
+/home/jereml/Study/SIV/Generative methods/week3/gcg_stud/build/../bin/pool_scene
