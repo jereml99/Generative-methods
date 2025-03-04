@@ -29,12 +29,31 @@ const float inv_thresh_times_2 = 1/(2.0*thresh);    // Used for central differen
 const float lipschitz_const = 1.0;
 
 // Compute distance. Right now this function computes the distance to a single
-// sphere
+// elipsoid
+
+vec3 rotateZ(vec3 p, float angle) {
+    float s = sin(angle);
+    float c = cos(angle);
+    return vec3(c * p.x - s * p.y, s * p.x + c * p.y, p.z);
+}
+
+float torus(vec3 p, vec2 torus_size, vec3 torus_center) {
+    vec2 q = vec2(length(p.xz-torus_center.xz)-torus_size.x,p.y-torus_center.y);
+    return length(q) - torus_size.y;
+}
+
+
 float dist(vec3 p) {
-    vec3 c = vec3(0.0, -0.1, 0.0);
-    vec3 r = vec3(0.5, 0.3, 0.7);
-    vec3 d = (p-c)/r;
-    return length(d) - 1.0;
+    vec2 torus_size = vec2(0.3, 0.1);
+    vec3 torus_center = vec3(0.0, 0.0, 0.0);
+    float union_val = min(
+        torus(p, torus_size*0.6, torus_center),
+        min(
+            torus(p, torus_size * 0.3, torus_center + vec3(0.0, 0.01, 0.0)),
+            torus(p, torus_size, torus_center + vec3(0.0, -0.02, 0.0))
+        )
+    );
+    return union_val;
 }
 
 // Compute the gradient. For many implcits, we can easily compute the 
@@ -58,7 +77,7 @@ vec3 shade(vec3 p, vec3 n, float t) {
     // specular reflections and cast shadows, but it would reduce performance.
     
     // Color is initialized to the ambient color
-    vec3 color = vec3(0.09, 0.09, 0.56);
+    vec3 color = vec3(0.07, 0.07, 0.81);
     // Add diffuse and specular contributions for light source in the eye
     float d = dot(n,normalize(eye_pos.rgb));
     color +=  vec3(0.5,0.5,0.75) * d;
