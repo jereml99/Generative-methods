@@ -42,18 +42,29 @@ float torus(vec3 p, vec2 torus_size, vec3 torus_center) {
     return length(q) - torus_size.y;
 }
 
-
-float dist(vec3 p) {
+float torus_union(vec3 p) {
     vec2 torus_size = vec2(0.3, 0.1);
     vec3 torus_center = vec3(0.0, 0.0, 0.0);
     float union_val = min(
         torus(p, torus_size*0.6, torus_center),
         min(
-            torus(rotateZ(p,3.14*0.5), torus_size * 0.3, torus_center + vec3(0.0, 0.01, 0.0)),
+            torus(p, torus_size * 0.3, torus_center + vec3(0.0, 0.01, 0.0)),
             torus(p, torus_size, torus_center + vec3(0.0, -0.02, 0.0))
         )
     );
     return union_val;
+}
+
+float opLimitedRepetition( in vec3 p, in float s, in vec3 l )
+{
+    vec3 q = p - s * clamp(round(p / s), -l, l);
+    return torus_union(q);
+}
+
+
+float dist(vec3 p) {
+    // infinite repetition of torus
+    return opLimitedRepetition(p, 0.5, vec3(1));
 }
 
 // Compute the gradient. For many implcits, we can easily compute the 
