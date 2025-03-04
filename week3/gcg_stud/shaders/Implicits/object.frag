@@ -49,7 +49,7 @@ float dist(vec3 p) {
     float union_val = min(
         torus(p, torus_size*0.6, torus_center),
         min(
-            torus(p, torus_size * 0.3, torus_center + vec3(0.0, 0.01, 0.0)),
+            torus(rotateZ(p,3.14*0.5), torus_size * 0.3, torus_center + vec3(0.0, 0.01, 0.0)),
             torus(p, torus_size, torus_center + vec3(0.0, -0.02, 0.0))
         )
     );
