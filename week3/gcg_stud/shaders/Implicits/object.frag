@@ -23,7 +23,7 @@ in vec3 norm;           // Normal at ray origin
 out vec4 fragColor;     // Output color
 
 const float thresh = 1e-4;                     // Required surface proximity.
-const float inv_thresh_times_2 = 2.0/thresh;    // Used for central differences
+const float inv_thresh_times_2 = 1/(2.0*thresh);    // Used for central differences
 
 // For distance fields, Lipschitz const should be 1:
 const float lipschitz_const = 1.0;
@@ -32,15 +32,19 @@ const float lipschitz_const = 1.0;
 // sphere
 float dist(vec3 p) {
     vec3 c = vec3(0.0, -0.1, 0.0);
-    float r = 0.5;
-    return length(p-c) - r;
+    vec3 r = vec3(0.5, 0.3, 0.7);
+    vec3 d = (p-c)/r;
+    return length(d) - 1.0;
 }
 
 // Compute the gradient. For many implcits, we can easily compute the 
 // analytic derivatives, but this is a general solution that does not
 // require us to find the derivative for every new implicit.
 vec3 dist_grad(vec3 p) {
-    return vec3(0,1,0);
+    float dx = (dist(p + vec3(thresh, 0, 0)) - dist(p - vec3(thresh, 0, 0)))*inv_thresh_times_2;
+    float dy = (dist(p + vec3(0, thresh, 0)) - dist(p - vec3(0, thresh, 0)))*inv_thresh_times_2;
+    float dz = (dist(p + vec3(0, 0, thresh)) - dist(p - vec3(0, 0, thresh)))*inv_thresh_times_2;
+    return vec3(dx, dy, dz);
 }
 
 
@@ -54,7 +58,7 @@ vec3 shade(vec3 p, vec3 n, float t) {
     // specular reflections and cast shadows, but it would reduce performance.
     
     // Color is initialized to the ambient color
-    vec3 color = vec3(0.05,0.05, 0.15);
+    vec3 color = vec3(0.09, 0.09, 0.56);
     // Add diffuse and specular contributions for light source in the eye
     float d = dot(n,normalize(eye_pos.rgb));
     color +=  vec3(0.5,0.5,0.75) * d;
@@ -117,7 +121,7 @@ void main()
         // Update ray parameter such that we take uniform small steps.
         // This is SLOW. Change it such that you use the distance value
         // and Lipschitz constant to choose a good step length
-        t += 0.0002;
+        t += d/lipschitz_const;
         
         // Compute position along ray.
         vec3 p = p0 + t * r;
